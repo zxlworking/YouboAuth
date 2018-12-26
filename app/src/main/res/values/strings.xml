@@ -1,3 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
+
     <string name="app_name">YouboAuth</string>
+    <string name="current_state_wifi">"当前状态："</string>
+    <string name="current_state_google_account">"当前状态："</string>
+    <string name="current_state_screen_capture">"当前状态："</string>
+    <string name="state_restricted">已禁用</string>
+    <string name="state_nomal">未禁用</string>
+    <string name="disable_wifi">禁用WiFi</string>
+    <string name="enable_wifi">启用WiFi</string>
+    <string name="disable_google_account">禁用谷歌账号</string>
+    <string name="enable_google_account">启用谷歌账号</string>
+    <string name="enable_screen_capture">启用截屏</string>
+    <string name="disable_screen_capture">禁用截屏</string>
+    <string name="enable_data_conn">启用数据连接</string>
+    <string name="state_not_actived">该应用未激活</string>
+    <string name="accept_btn">同意</string>
+    <string name="exit_btn">退出</string>
+    <string name="disable_warning">取消激活后将导致本软件的部分功能无法正常工作，您确定要取消激活么？</string>
+    <string name="know">已阅读</string>
+    <string name="not_show_anymore">不再提示</string>
+    <string name="title_license">免责声明与软件许可协议</string>
+    <string name="title_permissions">权限使用声明</string>
+    <string name="read_statement">若您点击同意并开始使用本软件，代表您已阅读并接受<a href="http://www.huawei.mdm.com">《免责声明与软件许可协议》</a>。</string>
+
 </resources>
