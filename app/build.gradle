@@ -13,15 +13,15 @@ android {
 
     signingConfigs {
         release {
-            storeFile file("my.jks")
+            storeFile file("youbo_auth.jks")
             storePassword 'working'
-            keyAlias 'zxlworking'
+            keyAlias 'youbo_auth'
             keyPassword 'working'
         }
         debug {
-            storeFile file("my.jks")
+            storeFile file("youbo_auth.jks")
             storePassword 'working'
-            keyAlias 'zxlworking'
+            keyAlias 'youbo_auth'
             keyPassword 'working'
         }
     }

@@ -1,0 +1,42 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.huawei.mdm.sample2"
+    android:versionCode="1"
+    android:versionName="1.0" >
+
+ <uses-permission android:name="com.huawei.permission.sec.MDM" />
+
+    <uses-sdk
+        android:minSdkVersion="8"
+        android:targetSdkVersion="18" />
+
+    <application
+        android:allowBackup="true"
+        android:icon="@drawable/ic_launcher"
+        android:label="@string/app_name"
+        android:theme="@style/AppBaseTheme" >
+        <meta-data android:name="hwc-theme"
+               android:value="androidhwext:style/Theme.Emui" />
+        <activity
+            android:name="com.huawei.mdm.sample2.MainActivity"
+            android:label="@string/app_name" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name="com.huawei.mdm.sample2.LicenseActivity">
+        </activity>
+
+    <receiver android:name="com.huawei.mdm.sample2.SampleDeviceReceiver"
+        android:label="MDM_Sample"
+        android:permission="android.permission.BIND_DEVICE_ADMIN">
+        <meta-data android:name="android.app.device_admin"
+            android:resource="@xml/device_admin"/>
+        <intent-filter>
+            <action android:name="android.app.action.DEVICE_ADMIN_ENABLED" />
+        </intent-filter>
+        </receiver>
+    </application>
+
+</manifest>

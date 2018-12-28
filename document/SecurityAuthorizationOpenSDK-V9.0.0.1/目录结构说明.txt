@@ -1,0 +1,6 @@
+Docs:包含SDK的开发指导书和相关API说明等。
+Libs:包含SDK的jar包，使用时直接拷贝到APP的libs目录下即可
+Samples:SDK样例工程代码，可在EMUI4.1上运行。
+tools:包含华为证书打包到APK的工具DevEco.exe和Samples例子对应的华为证书HUAWEI.cer。
+MDMSample.apk:集成了华为证书HUAWEI.CER的APK。另外，请注意：MDMSample编译出来的APK，需要集成对应的华为证书，才能在华为设备上正常安装，否则会安装失败。
+ReleaseNote.txt：更新说明。

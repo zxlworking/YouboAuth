@@ -1,0 +1,10 @@
+id=com.huawei.android.app.admin
+name=Huawei Security Authorization Open API
+version=9.0.0.1
+AndroidVersion.ApiLevel=26
+release_date=2018-10-26
+description=hwMdm SDK is a HUAWEI security authorized SDK, it can provide restriction function and application management on HUAWEI phone.
+release_notes= 
+v2.0 add EMUI 8.0 APIs
+v9.0.0.1 add EMUI8.1 EMUI8.2 EMUI9.0 APIs
+

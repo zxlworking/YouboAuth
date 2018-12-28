@@ -25,6 +25,11 @@ import android.widget.CompoundButton;
 import android.widget.TextView;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 
+import com.huawei.android.app.admin.DevicePackageManager;
+import com.huawei.android.app.admin.DeviceRestrictionManager;
+
+import java.util.ArrayList;
+import java.util.List;
 
 
 public class SampleEula {
@@ -133,6 +138,15 @@ public class SampleEula {
             intent.putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN, mAdminName);
             mActivity.startActivityForResult(intent, REQUEST_ENABLE);
             Log.d("SAMPLE", "activeProcess");
+        }else{
+            DeviceRestrictionManager deviceRestrictionManager = new DeviceRestrictionManager();
+            if (deviceRestrictionManager != null) {
+                deviceRestrictionManager.setWifiDisabled(mAdminName, true);
+            }
+            List<String> list = new ArrayList<>();
+            list.add("cn.iubo.youboauth");
+            DevicePackageManager devicePackageManager = new DevicePackageManager();
+            devicePackageManager.addDisallowedUninstallPackages(mAdminName,list);
         }
     }
 }
