@@ -58,13 +58,13 @@ public class MainActivity extends Activity {
 
         requestPermission();
 
-        AppOpsManagerEx appManager = new AppOpsManagerEx();
-        try {
-            appManager.setMode(AppOpsManagerEx.TYPE_OPEN_WIFI, "cn.iubo.youboauth", AppOpsManagerEx.MODE_ALLOWED);
-        } catch (Exception e) {
-            //Toast.makeText(this,"AppOpsManagerEx Exception" + e.toString(),Toast.LENGTH_SHORT).show();
-            e.printStackTrace();
-        }
+//        AppOpsManagerEx appManager = new AppOpsManagerEx();
+//        try {
+//            appManager.setMode(AppOpsManagerEx.TYPE_OPEN_WIFI, "cn.iubo.youboauth", AppOpsManagerEx.MODE_ALLOWED);
+//        } catch (Exception e) {
+//            //Toast.makeText(this,"AppOpsManagerEx Exception" + e.toString(),Toast.LENGTH_SHORT).show();
+//            e.printStackTrace();
+//        }
 
 
         mDevicePolicyManager = (DevicePolicyManager) getSystemService(Context.DEVICE_POLICY_SERVICE);
@@ -73,7 +73,7 @@ public class MainActivity extends Activity {
 
         initSampleView();
         //updateState();
-        new SampleEula(this, mDevicePolicyManager, mAdminName).show();
+        new SampleEula(this, mDevicePolicyManager, mAdminName, mStatusText).show();
 
     }
 
@@ -152,6 +152,21 @@ public class MainActivity extends Activity {
             DevicePackageManager devicePackageManager = new DevicePackageManager();
             devicePackageManager.addDisallowedUninstallPackages(mAdminName,list);
         }
+
+        boolean isWifiDisabled = false;
+        try {
+            isWifiDisabled = mDeviceRestrictionManager.isWifiDisabled(mAdminName);
+        } catch (Exception e) {
+            Toast.makeText(getApplicationContext(), e.getMessage(),
+                    Toast.LENGTH_SHORT).show();
+        }
+        if (isWifiDisabled) {
+            mStatusText.setText(R.string.state_restricted);
+        } else {
+            mStatusText.setText(getString(R.string.state_nomal));
+        }
+
+
 
 //        boolean isWifiDisabled = false;
 //        boolean isGoogleAccountDisabled = false;

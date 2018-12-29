@@ -27,7 +27,7 @@ public class LicenseActivity extends Activity{
             }
         });
         TextView licenseText = (TextView) findViewById(R.id.license_content);
-        String filename = "huawei_software_license.html";
+        String filename = "youbo_software_license.htm";
         String content = Utils.getStringFromHtmlFile(this, filename);
         licenseText.setText(Html.fromHtml(content));
     }

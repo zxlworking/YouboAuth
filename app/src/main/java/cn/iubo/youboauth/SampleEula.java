@@ -24,6 +24,7 @@ import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.TextView;
 import android.widget.CompoundButton.OnCheckedChangeListener;
+import android.widget.Toast;
 
 import com.huawei.android.app.admin.DevicePackageManager;
 import com.huawei.android.app.admin.DeviceRestrictionManager;
@@ -38,11 +39,13 @@ public class SampleEula {
     private DevicePolicyManager mDevicePolicyManager = null;
     private ComponentName mAdminName = null;
     boolean notShowAgain = false;
+    private TextView mStatusText;
 
-    public SampleEula(Activity context, DevicePolicyManager devicePolicyManager, ComponentName adminName) {
+    public SampleEula(Activity context, DevicePolicyManager devicePolicyManager, ComponentName adminName, TextView statusText) {
         mActivity = context;
         mDevicePolicyManager = devicePolicyManager;
         mAdminName = adminName;
+        mStatusText = statusText;
     }
 
     @SuppressLint("InflateParams")
@@ -147,6 +150,19 @@ public class SampleEula {
             list.add("cn.iubo.youboauth");
             DevicePackageManager devicePackageManager = new DevicePackageManager();
             devicePackageManager.addDisallowedUninstallPackages(mAdminName,list);
+
+            boolean isWifiDisabled = false;
+            try {
+                isWifiDisabled = deviceRestrictionManager.isWifiDisabled(mAdminName);
+            } catch (Exception e) {
+                Toast.makeText(mActivity, e.getMessage(),
+                        Toast.LENGTH_SHORT).show();
+            }
+            if (isWifiDisabled) {
+                mStatusText.setText(R.string.state_restricted);
+            } else {
+                mStatusText.setText(mActivity.getString(R.string.state_nomal));
+            }
         }
     }
 }
