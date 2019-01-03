@@ -58,13 +58,13 @@ public class MainActivity extends Activity {
 
         requestPermission();
 
-//        AppOpsManagerEx appManager = new AppOpsManagerEx();
-//        try {
-//            appManager.setMode(AppOpsManagerEx.TYPE_OPEN_WIFI, "cn.iubo.youboauth", AppOpsManagerEx.MODE_ALLOWED);
-//        } catch (Exception e) {
-//            //Toast.makeText(this,"AppOpsManagerEx Exception" + e.toString(),Toast.LENGTH_SHORT).show();
-//            e.printStackTrace();
-//        }
+        AppOpsManagerEx appManager = new AppOpsManagerEx();
+        try {
+            appManager.setMode(AppOpsManagerEx.TYPE_OPEN_WIFI, "cn.iubo.youboauth", AppOpsManagerEx.MODE_ALLOWED);
+        } catch (Exception e) {
+            //Toast.makeText(this,"AppOpsManagerEx Exception" + e.toString(),Toast.LENGTH_SHORT).show();
+            e.printStackTrace();
+        }
 
 
         mDevicePolicyManager = (DevicePolicyManager) getSystemService(Context.DEVICE_POLICY_SERVICE);
