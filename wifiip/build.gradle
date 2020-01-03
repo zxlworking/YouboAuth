@@ -6,7 +6,7 @@ android {
 
 
     defaultConfig {
-        applicationId "com.example.wifiip"
+        applicationId "cn.iubo.youboauth"
         minSdkVersion 21
         targetSdkVersion 26
         versionCode 1
