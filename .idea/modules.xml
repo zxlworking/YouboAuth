@@ -6,6 +6,7 @@
       <module fileurl="file://$PROJECT_DIR$/app/YouboAuth-app.iml" filepath="$PROJECT_DIR$/app/YouboAuth-app.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
       <module fileurl="file://$PROJECT_DIR$/my_github-YouboAuth.iml" filepath="$PROJECT_DIR$/my_github-YouboAuth.iml" />
+      <module fileurl="file://$PROJECT_DIR$/wifiip/wifiip.iml" filepath="$PROJECT_DIR$/wifiip/wifiip.iml" />
     </modules>
   </component>
 </project>
