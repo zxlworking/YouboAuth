@@ -20,11 +20,15 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.net.Inet4Address;
 import java.net.InetAddress;
+import java.net.InterfaceAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
     private String[] permissions = new String[]{
@@ -72,6 +76,8 @@ public class MainActivity extends AppCompatActivity {
         });
 
         //getLocalIp();
+
+        printIpAddress();
     }
 
     private void requestPermission() {
@@ -312,5 +318,99 @@ public class MainActivity extends AppCompatActivity {
         }
         return "";
 
+    }
+
+    public static void printIpAddress() {
+        try {
+            Enumeration<NetworkInterface> eni = NetworkInterface.getNetworkInterfaces();
+            while (eni.hasMoreElements()) {
+
+                NetworkInterface networkCard = eni.nextElement();
+                if (!networkCard.isUp()) { // 判断网卡是否在使用
+                    continue;
+                }
+
+                String DisplayName = networkCard.getDisplayName();
+
+                List<InterfaceAddress> addressList = networkCard.getInterfaceAddresses();
+                Iterator<InterfaceAddress> addressIterator = addressList.iterator();
+                while (addressIterator.hasNext()) {
+                    InterfaceAddress interfaceAddress = addressIterator.next();
+                    InetAddress address = interfaceAddress.getAddress();
+                    if (!address.isLoopbackAddress()) {
+                        String hostAddress = address.getHostAddress();
+
+                        if (hostAddress.indexOf(":") > 0) {
+                        } else {
+                            String maskAddress = calcMaskByPrefixLength(interfaceAddress.getNetworkPrefixLength());
+                            String gateway = calcSubnetAddress(hostAddress, maskAddress);
+
+                            String broadcastAddress = null;
+                            InetAddress broadcast = interfaceAddress.getBroadcast();
+                            if (broadcast != null)
+                                broadcastAddress = broadcast.getHostAddress();
+
+                            Log.e("GGG", "DisplayName    =   " + DisplayName);
+                            Log.e("GGG", "address        =   " + hostAddress);
+                            Log.e("GGG", "mask           =   " + maskAddress);
+                            Log.e("GGG", "gateway        =   " + gateway);
+                            Log.e("GGG", "broadcast      =   " + broadcastAddress + "\n");
+                            Log.e("GGG", "----- NetworkInterface  Separator ----\n\n");
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static String calcMaskByPrefixLength(int length) {
+
+        int mask = 0xffffffff << (32 - length);
+        int partsNum = 4;
+        int bitsOfPart = 8;
+        int maskParts[] = new int[partsNum];
+        int selector = 0x000000ff;
+
+        for (int i = 0; i < maskParts.length; i++) {
+            int pos = maskParts.length - 1 - i;
+            maskParts[pos] = (mask >> (i * bitsOfPart)) & selector;
+        }
+
+        String result = "";
+        result = result + maskParts[0];
+        for (int i = 1; i < maskParts.length; i++) {
+            result = result + "." + maskParts[i];
+        }
+        return result;
+    }
+
+    public static String calcSubnetAddress(String ip, String mask) {
+        String result = "";
+        try {
+            // calc sub-net IP
+            InetAddress ipAddress = InetAddress.getByName(ip);
+            InetAddress maskAddress = InetAddress.getByName(mask);
+
+            byte[] ipRaw = ipAddress.getAddress();
+            byte[] maskRaw = maskAddress.getAddress();
+
+            int unsignedByteFilter = 0x000000ff;
+            int[] resultRaw = new int[ipRaw.length];
+            for (int i = 0; i < resultRaw.length; i++) {
+                resultRaw[i] = (ipRaw[i] & maskRaw[i] & unsignedByteFilter);
+            }
+
+            // make result string
+            result = result + resultRaw[0];
+            for (int i = 1; i < resultRaw.length; i++) {
+                result = result + "." + resultRaw[i];
+            }
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+        }
+
+        return result;
     }
 }
