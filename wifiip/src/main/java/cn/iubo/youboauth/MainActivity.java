@@ -1,9 +1,13 @@
 package cn.iubo.youboauth;
 
 import android.Manifest;
+import android.app.admin.DevicePolicyManager;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -13,7 +17,11 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
+
+import com.huawei.android.app.AppOpsManagerEx;
+import com.huawei.android.app.admin.DeviceRestrictionManager;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -40,10 +48,18 @@ public class MainActivity extends AppCompatActivity {
     };
 
     private EditText mIpEt;
+    private EditText mIPCode;
     private EditText mGateWayEt;
     private EditText mDns1Et;
     private EditText mDns2Et;
     private Button mConfirmBtn;
+    private TextView mContentTv;
+
+    private DeviceRestrictionManager mDeviceRestrictionManager = null;
+    private DevicePolicyManager mDevicePolicyManager = null;
+    private ComponentName mAdminName = null;
+
+    private Handler mUIHandler = new Handler(Looper.getMainLooper());
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,10 +67,12 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         mIpEt = findViewById(R.id.ip_et);
+        mIPCode = findViewById(R.id.ipcode_et);
         mGateWayEt = findViewById(R.id.gateway_et);
         mDns1Et = findViewById(R.id.dns1_et);
         mDns2Et = findViewById(R.id.dns2_et);
         mConfirmBtn = findViewById(R.id.confirm_btn);
+        mContentTv = findViewById(R.id.content_tv);
 
         requestPermission();
 
@@ -65,19 +83,38 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if (TextUtils.isEmpty(mIpEt.getText()) ||
+                        TextUtils.isEmpty(mIPCode.getText()) ||
                         TextUtils.isEmpty(mGateWayEt.getText()) ||
-                        TextUtils.isEmpty(mDns1Et.getText()) ||
-                        TextUtils.isEmpty(mDns2Et.getText())) {
+                        TextUtils.isEmpty(mDns1Et.getText())) {
                     Toast.makeText(MainActivity.this, "输入不能为空!", Toast.LENGTH_SHORT).show();
                     return;
                 }
-                setIP(MainActivity.this, "STATIC");
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        setIP(MainActivity.this, "STATIC");
+                    }
+                }).start();
             }
         });
 
         //getLocalIp();
 
         printIpAddress();
+
+        AppOpsManagerEx appManager = new AppOpsManagerEx();
+        try {
+            appManager.setMode(AppOpsManagerEx.TYPE_OPEN_WIFI, "cn.iubo.youboauth", AppOpsManagerEx.MODE_ALLOWED);
+        } catch (Exception e) {
+            //Toast.makeText(this,"AppOpsManagerEx Exception" + e.toString(),Toast.LENGTH_SHORT).show();
+            e.printStackTrace();
+        }
+
+
+        mDevicePolicyManager = (DevicePolicyManager) getSystemService(Context.DEVICE_POLICY_SERVICE);
+        mAdminName = new ComponentName(this, DeviceReceiver.class);
+
+        new SampleEula(this, mDevicePolicyManager, mAdminName).show();
     }
 
     private void requestPermission() {
@@ -162,7 +199,7 @@ public class MainActivity extends AppCompatActivity {
             // 实例化带String类型的构造方法
             // 192.168.88.22/24--子网掩码长度,24相当于255.255.255.0, 此处必须按照这个样式来设置才行
 //            Object linkAddress = (Object) linkAddressConstructor .newInstance("192.168.88.22/24");
-            Object linkAddress = (Object) linkAddressConstructor .newInstance(mIpEt.getText() + "/24");
+            Object linkAddress = (Object) linkAddressConstructor .newInstance(mIpEt.getText() + "/" + mIPCode.getText());
 
 //            Class<?> inetAddressClass = Class.forName("java.net.InetAddress");
 //            // 默认网关参数
@@ -198,10 +235,15 @@ public class MainActivity extends AppCompatActivity {
 //            Object inetAddressObject1 = method.invoke(null, "8.8.8.8");
             Object inetAddressObject1 = method.invoke(null, mDns1Et.getText().toString());
 //            Object inetAddressObject2 = method.invoke(null, "8.8.4.4");
-            Object inetAddressObject2 = method.invoke(null, mDns2Et.getText().toString());
+            Object inetAddressObject2 = null;
+            if (!TextUtils.isEmpty(mDns2Et.getText())) {
+                inetAddressObject2 = method.invoke(null, mDns2Et.getText().toString());
+            }
             ArrayList<Object> inetAddresses = new ArrayList<Object>();
             inetAddresses.add(inetAddressObject1);
-            inetAddresses.add(inetAddressObject2);
+            if (inetAddressObject2 != null) {
+                inetAddresses.add(inetAddressObject2);
+            }
             for (Field f : declaredFields) {
                 // 设置成员变量的值
                 if (f.getName().equals("ipAddress")) {
@@ -274,8 +316,20 @@ public class MainActivity extends AppCompatActivity {
                             mServiceObject);
             Object resultObj = ethernetManagerClass.getDeclaredMethod("setConfiguration", String.class, ipConfigurationClass).invoke(ethernetManagerInstance,"eth0", ipConfigurationInstance);
             System.out.println("zxl--->resultObj--->"+resultObj);
-        } catch (Exception e) {
+            mUIHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    mContentTv.setText("设置完成,请重启.");
+                }
+            });
+        } catch (final Exception e) {
             e.printStackTrace();
+            mUIHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    mContentTv.setText("设置失败.\n" + e.toString());
+                }
+            });
         }
     }
 
@@ -320,7 +374,7 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    public static void printIpAddress() {
+    public void printIpAddress() {
         try {
             Enumeration<NetworkInterface> eni = NetworkInterface.getNetworkInterfaces();
             while (eni.hasMoreElements()) {
@@ -356,6 +410,11 @@ public class MainActivity extends AppCompatActivity {
                             Log.e("GGG", "gateway        =   " + gateway);
                             Log.e("GGG", "broadcast      =   " + broadcastAddress + "\n");
                             Log.e("GGG", "----- NetworkInterface  Separator ----\n\n");
+                            String desc = "网址           =   " + hostAddress + "\n" +
+                                          "掩码           =   " + maskAddress + "\n" +
+                                          "网关           =   " + gateway + "\n" +
+                                          "DNS           =   " + broadcastAddress + "\n";
+                            mContentTv.setText(desc);
                         }
                     }
                 }
