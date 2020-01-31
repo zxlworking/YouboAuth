@@ -4,9 +4,12 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/YouboAuth.iml" filepath="$PROJECT_DIR$/YouboAuth.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/YouboAuth-app.iml" filepath="$PROJECT_DIR$/app/YouboAuth-app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/wifiip/YouboAuth-wifiip.iml" filepath="$PROJECT_DIR$/wifiip/YouboAuth-wifiip.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
       <module fileurl="file://$PROJECT_DIR$/my_github-YouboAuth.iml" filepath="$PROJECT_DIR$/my_github-YouboAuth.iml" />
       <module fileurl="file://$PROJECT_DIR$/wifiip/wifiip.iml" filepath="$PROJECT_DIR$/wifiip/wifiip.iml" />
+      <module fileurl="file://$PROJECT_DIR$/workspace-YouboAuth.iml" filepath="$PROJECT_DIR$/workspace-YouboAuth.iml" />
+      <module fileurl="file://$PROJECT_DIR$/app/workspace-YouboAuth-app.iml" filepath="$PROJECT_DIR$/app/workspace-YouboAuth-app.iml" />
     </modules>
   </component>
 </project>

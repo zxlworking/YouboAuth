@@ -4,11 +4,15 @@ import android.Manifest;
 import android.app.admin.DevicePolicyManager;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.net.DhcpInfo;
+import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -23,6 +27,9 @@ import android.widget.Toast;
 import com.huawei.android.app.AppOpsManagerEx;
 import com.huawei.android.app.admin.DeviceRestrictionManager;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -53,6 +60,7 @@ public class MainActivity extends AppCompatActivity {
     private EditText mDns1Et;
     private EditText mDns2Et;
     private Button mConfirmBtn;
+    private TextView mResultTv;
     private TextView mContentTv;
 
     private DeviceRestrictionManager mDeviceRestrictionManager = null;
@@ -72,6 +80,7 @@ public class MainActivity extends AppCompatActivity {
         mDns1Et = findViewById(R.id.dns1_et);
         mDns2Et = findViewById(R.id.dns2_et);
         mConfirmBtn = findViewById(R.id.confirm_btn);
+        mResultTv = findViewById(R.id.result_tv);
         mContentTv = findViewById(R.id.content_tv);
 
         requestPermission();
@@ -84,8 +93,7 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 if (TextUtils.isEmpty(mIpEt.getText()) ||
                         TextUtils.isEmpty(mIPCode.getText()) ||
-                        TextUtils.isEmpty(mGateWayEt.getText()) ||
-                        TextUtils.isEmpty(mDns1Et.getText())) {
+                        TextUtils.isEmpty(mGateWayEt.getText())) {
                     Toast.makeText(MainActivity.this, "输入不能为空!", Toast.LENGTH_SHORT).show();
                     return;
                 }
@@ -115,6 +123,16 @@ public class MainActivity extends AppCompatActivity {
         mAdminName = new ComponentName(this, DeviceReceiver.class);
 
         new SampleEula(this, mDevicePolicyManager, mAdminName).show();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        System.out.println("zxl--->onActivityResult");
+        Intent mIntent = getIntent();
+        finish();
+        overridePendingTransition(0,0);
+        startActivity(mIntent);
     }
 
     private void requestPermission() {
@@ -159,6 +177,10 @@ public class MainActivity extends AppCompatActivity {
 
     /**
      * context 参数，mode参数为静动态模式，分别为STATIC ,DHCP
+     * 158.173.102.181
+     * 255.255.255.0
+     * 158.173.102.123
+     * 158.173.102.255
      **/
     public void setIP(Context context, String mode) {
         InetAddress inetAddress;
@@ -233,14 +255,19 @@ public class MainActivity extends AppCompatActivity {
             Method method = threadClazz.getMethod("numericToInetAddress",
                     String.class);
 //            Object inetAddressObject1 = method.invoke(null, "8.8.8.8");
-            Object inetAddressObject1 = method.invoke(null, mDns1Et.getText().toString());
+            Object inetAddressObject1 = null;
+            if (!TextUtils.isEmpty(mDns1Et.getText())) {
+                inetAddressObject1 = method.invoke(null, mDns1Et.getText().toString());
+            }
 //            Object inetAddressObject2 = method.invoke(null, "8.8.4.4");
             Object inetAddressObject2 = null;
             if (!TextUtils.isEmpty(mDns2Et.getText())) {
                 inetAddressObject2 = method.invoke(null, mDns2Et.getText().toString());
             }
             ArrayList<Object> inetAddresses = new ArrayList<Object>();
-            inetAddresses.add(inetAddressObject1);
+            if (inetAddressObject1 != null) {
+                inetAddresses.add(inetAddressObject1);
+            }
             if (inetAddressObject2 != null) {
                 inetAddresses.add(inetAddressObject2);
             }
@@ -319,7 +346,7 @@ public class MainActivity extends AppCompatActivity {
             mUIHandler.post(new Runnable() {
                 @Override
                 public void run() {
-                    mContentTv.setText("设置完成,请重启.");
+                    mResultTv.setText("设置完成,请重启.");
                 }
             });
         } catch (final Exception e) {
@@ -327,7 +354,7 @@ public class MainActivity extends AppCompatActivity {
             mUIHandler.post(new Runnable() {
                 @Override
                 public void run() {
-                    mContentTv.setText("设置失败.\n" + e.toString());
+                    mResultTv.setText("设置失败.\n" + e.toString());
                 }
             });
         }
@@ -412,8 +439,8 @@ public class MainActivity extends AppCompatActivity {
                             Log.e("GGG", "----- NetworkInterface  Separator ----\n\n");
                             String desc = "网址           =   " + hostAddress + "\n" +
                                           "掩码           =   " + maskAddress + "\n" +
-                                          "网关           =   " + gateway + "\n" +
-                                          "DNS           =   " + broadcastAddress + "\n";
+                                          "网关           =   " + getLocalGATE() + "\n" +
+                                          "DNS           =   " + getLocalDNS() + "\n";
                             mContentTv.setText(desc);
                         }
                     }
@@ -471,5 +498,135 @@ public class MainActivity extends AppCompatActivity {
         }
 
         return result;
+    }
+
+    private String getLocalGATE(){
+        try {
+            // 获取ETHERNET_SERVICE参数
+            String ETHERNET_SERVICE = (String) Context.class.getField(
+                    "ETHERNET_SERVICE").get(null);
+            Class<?> ethernetManagerClass = Class.forName("android.net.EthernetManager");
+            // 获取ethernetManager服务对象
+            Object ethernetManager = getSystemService(ETHERNET_SERVICE);
+
+            // 获取在EthernetManager中的抽象类mService成员变量
+            Field mService = ethernetManagerClass.getDeclaredField("mService");
+            // 修改private权限
+            mService.setAccessible(true);
+            // 获取抽象类的实例化对象
+            Object mServiceObject = mService.get(ethernetManager);
+
+
+            final Object getConfiguration = mServiceObject.getClass().getMethod(
+                    "getConfiguration", String.class).invoke(mServiceObject,"eth0");
+
+            System.out.println("zxl--->getConfiguration--->"+getConfiguration);
+            Field[] declaredFields = getConfiguration.getClass()
+                    .getFields();
+            String s = "";
+            for(Field field : declaredFields) {
+                s = s + field.getName() + "\n";
+            }
+            System.out.println("zxl--->getConfiguration--->"+s);
+
+            try {
+                Object staticIpConfiguration = getConfiguration.getClass().getField("staticIpConfiguration").get(getConfiguration);
+
+                declaredFields = staticIpConfiguration.getClass()
+                        .getFields();
+                s = "";
+                for(Field field : declaredFields) {
+                    s = s + field.getName() + "\n";
+                }
+                System.out.println("zxl--->staticIpConfiguration--->"+s);
+
+                InetAddress gateway = (InetAddress) staticIpConfiguration.getClass().getField("gateway").get(staticIpConfiguration);
+                System.out.println("zxl--->gateway--->"+gateway + "--->" + gateway.getHostAddress());
+                return gateway.getHostAddress();
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            } catch (NoSuchFieldException e) {
+                e.printStackTrace();
+            }
+        } catch (final Exception e) {
+            e.printStackTrace();
+            mUIHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    mResultTv.setText("getLocalGATE失败.\n" + e.toString());
+                }
+            });
+        }
+        return "";
+    }
+
+    private String getLocalDNS(){
+        try {
+            // 获取ETHERNET_SERVICE参数
+            String ETHERNET_SERVICE = (String) Context.class.getField(
+                    "ETHERNET_SERVICE").get(null);
+            Class<?> ethernetManagerClass = Class.forName("android.net.EthernetManager");
+            // 获取ethernetManager服务对象
+            Object ethernetManager = getSystemService(ETHERNET_SERVICE);
+
+            // 获取在EthernetManager中的抽象类mService成员变量
+            Field mService = ethernetManagerClass.getDeclaredField("mService");
+            // 修改private权限
+            mService.setAccessible(true);
+            // 获取抽象类的实例化对象
+            Object mServiceObject = mService.get(ethernetManager);
+
+
+            final Object getConfiguration = mServiceObject.getClass().getMethod(
+                    "getConfiguration", String.class).invoke(mServiceObject,"eth0");
+
+            System.out.println("zxl--->getConfiguration--->"+getConfiguration);
+            Field[] declaredFields = getConfiguration.getClass()
+                    .getFields();
+            String s = "";
+            for(Field field : declaredFields) {
+                s = s + field.getName() + "\n";
+            }
+            System.out.println("zxl--->getConfiguration--->"+s);
+
+            try {
+                Object staticIpConfiguration = getConfiguration.getClass().getField("staticIpConfiguration").get(getConfiguration);
+
+                declaredFields = staticIpConfiguration.getClass()
+                        .getFields();
+                s = "";
+                for(Field field : declaredFields) {
+                    s = s + field.getName() + "\n";
+                }
+                System.out.println("zxl--->staticIpConfiguration--->"+s);
+
+                ArrayList<InetAddress> dnsServers = (ArrayList<InetAddress>) staticIpConfiguration.getClass().getField("dnsServers").get(staticIpConfiguration);
+                String dnsStr = "";
+                if (dnsServers != null) {
+                    for (InetAddress inetAddress : dnsServers) {
+                        System.out.println("zxl--->getLocalDNS--->"+inetAddress + "--->" + inetAddress.getHostAddress());
+                        if (!TextUtils.isEmpty(dnsStr)) {
+                            dnsStr = dnsStr + "||" + inetAddress.getHostAddress();
+                        } else {
+                            dnsStr = dnsStr + inetAddress.getHostAddress();
+                        }
+                    }
+                }
+                return dnsStr;
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            } catch (NoSuchFieldException e) {
+                e.printStackTrace();
+            }
+        } catch (final Exception e) {
+            e.printStackTrace();
+            mUIHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    mResultTv.setText("getLocalGATE失败.\n" + e.toString());
+                }
+            });
+        }
+        return "";
     }
 }
