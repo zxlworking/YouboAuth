@@ -1,1 +1,2 @@
+include ':testjni'
 include ':app', ':wifiip'
