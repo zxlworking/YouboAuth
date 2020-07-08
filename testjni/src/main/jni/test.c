@@ -6,5 +6,5 @@
 
 JNIEXPORT jstring JNICALL Java_cn_iubo_youboauth_testjni_JniUtils_getJniString(JNIEnv *env, jclass jc)
 {
-    return (*env)->NewStringUTF(env,"this is the first time for me to use jni");
+    return (*env)->NewStringUTF(env,"this is the first time for me to use jni---2");
 }
