@@ -3,7 +3,7 @@
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     android:keepScreenOn="true"
-    android:orientation="vertical" >
+    android:orientation="vertical">
 
     <EditText
         android:id="@+id/EditTextReception"
@@ -12,16 +12,14 @@
         android:layout_weight="1"
         android:gravity="top"
         android:hint="Reception"
-        android:scrollbarStyle="insideOverlay"
-        android:isScrollContainer="true">
-    </EditText>
+        android:isScrollContainer="true"
+        android:scrollbarStyle="insideOverlay"></EditText>
 
     <EditText
         android:id="@+id/EditTextEmission"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:hint="Emission"
-        android:lines="1" >
-    </EditText>
+        android:lines="1"></EditText>
 
 </LinearLayout>
